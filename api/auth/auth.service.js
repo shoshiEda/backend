@@ -8,7 +8,8 @@ export const authService = {
     signup,
     login,
     getLoginToken,
-    validateToken
+    validateToken,
+    decryptLoginToken
 }
 
 const cryptr = new Cryptr(process.env.SECRET1 || 'Secret-Puk-1234')
@@ -26,21 +27,21 @@ async function login(username, password) {
     return user
 }
 
-async function signup(username, password, fullname) {
+async function signup(username, password, email,imgUrl) {
     const saltRounds = 10
 
-    logger.debug(`auth.service - signup with username: ${username}, fullname: ${fullname}`)
-    if (!username || !password || !fullname) throw new Error('Missing details')
+    logger.debug(`auth.service - signup with username: ${username}, email: ${email}`)
+    if (!username || !password || !email) throw new Error('Missing details')
 
     const hash = await bcrypt.hash(password, saltRounds)
-    return userService.add({ username, password: hash, fullname })
+    return userService.add({ username, password: hash, email,imgUrl})
 }
 
 function getLoginToken(user) {
     const userInfo = { 
         _id : user._id, 
-        fullname: user.fullname, 
-        isAdmin: user.isAdmin 
+        username: user.username, 
+        email: user.email, 
     }
     return cryptr.encrypt(JSON.stringify(userInfo))    
 }
@@ -54,4 +55,9 @@ function validateToken(loginToken) {
         console.log('Invalid login token')
     }
     return null
+}
+
+function decryptLoginToken(encryptedToken) {
+    const decryptedUserInfo = cryptr.decrypt(encryptedToken);
+    return JSON.parse(decryptedUserInfo);
 }

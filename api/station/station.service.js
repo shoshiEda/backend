@@ -1,99 +1,113 @@
 import { ObjectId } from 'mongodb'
-
-import { utilService } from '../../services/util.service.js'
 import { logger } from '../../services/logger.service.js'
 import { dbService } from '../../services/db.service.js'
 
-export const carService = {
-    remove,
+export const stationService = {
+    //remove,
     query,
     getById,
     add,
     update,
-    addCarMsg,
-    removeCarMsg
+    addStationSong,
+    removeStationSong
 }
 
-async function query(filterBy={txt:''}) {
+async function query(type='') {
+
+    const criteria = {type }
+    const sortCriteria={createdAt:-1}
+
+    const MAX_STATIONS_ON_PAGE=7
+    const MAX_STATIONS_OF_TYPE=30
+    const types =  ['Mixed','Pop','Hip-Hop','Rock','Electronic','Meditation']
+
     try {
-        const criteria = {
-            vendor: { $regex: filterBy.txt, $options: 'i' }
+        const collection = await dbService.getCollection('station');
+        if (type) {
+            const stations = await collection.find({ type }).sort(sortCriteria).limit(MAX_STATIONS_OF_TYPE).toArray();
+            return stations;
+        } else {
+            const promises = types.map(async type => {
+                const stationsOfType = await collection.find({ type }).sort(sortCriteria).limit(MAX_STATIONS_ON_PAGE).toArray();
+                return stationsOfType;
+            });
+            const stations = await Promise.all(promises);
+            //return stations;
+            return []
         }
-        const collection = await dbService.getCollection('car')
-        var cars = await collection.find(criteria).toArray()
-        return cars
     } catch (err) {
-        logger.error('cannot find cars', err)
+        logger.error('cannot find stations', err);
+        throw err;
+    }
+}
+
+
+async function getById(stationId) {
+    try {
+        const collection = await dbService.getCollection('station')
+        const station = await collection.findOne({ _id: new ObjectId(stationId) })
+        return station
+    } catch (err) {
+        logger.error(`while finding station ${stationId}`, err)
         throw err
     }
 }
 
-async function getById(carId) {
+/*async function remove(stationId) {
     try {
-        const collection = await dbService.getCollection('car')
-        const car = await collection.findOne({ _id: new ObjectId(carId) })
-        return car
-    } catch (err) {
-        logger.error(`while finding car ${carId}`, err)
-        throw err
-    }
-}
-
-async function remove(carId) {
-    try {
-        const collection = await dbService.getCollection('car')
+        const collection = await dbService.getCollection('station')
         await collection.deleteOne({ _id: new ObjectId(carId) })
     } catch (err) {
         logger.error(`cannot remove car ${carId}`, err)
         throw err
     }
-}
+}*/
 
-async function add(car) {
+async function add(station) {
     try {
-        const collection = await dbService.getCollection('car')
-        await collection.insertOne(car)
-        return car
+        const collection = await dbService.getCollection('station')
+        await collection.insertOne(station)
+        return station
     } catch (err) {
-        logger.error('cannot insert car', err)
+        logger.error('cannot insert station', err)
         throw err
     }
 }
 
-async function update(car) {
+async function update(station) {
     try {
-        const carToSave = {
-            vendor: car.vendor,
-            price: car.price
+        const stationToSave = {
+            name: station.name,
+            imgUrl: station.imgUrl,
+            description:station.description
         }
-        const collection = await dbService.getCollection('car')
-        await collection.updateOne({ _id: new ObjectId(car._id) }, { $set: carToSave })
-        return car
+        const collection = await dbService.getCollection('station')
+        await collection.updateOne({ _id: new ObjectId(station._id) }, { $set: stationToSave })
+        return station
     } catch (err) {
-        logger.error(`cannot update car ${car._id}`, err)
+        logger.error(`cannot update station ${station._id}`, err)
         throw err
     }
 }
 
-async function addCarMsg(carId, msg) {
+async function addStationSong(stationId, song) {
     try {
-        msg.id = utilService.makeId()
-        const collection = await dbService.getCollection('car')
-        await collection.updateOne({ _id: new ObjectId(carId) }, { $push: { msgs: msg } })
-        return msg
+        const collection = await dbService.getCollection('station')
+        await collection.updateOne({ _id: new ObjectId(stationId) }, { $push: { songs: song } })
+        return song
     } catch (err) {
-        logger.error(`cannot add car msg ${carId}`, err)
+        logger.error(`cannot add station song ${stationId}`, err)
         throw err
     }
 }
 
-async function removeCarMsg(carId, msgId) {
+async function removeStationSong(stationId, songId) {
     try {
-        const collection = await dbService.getCollection('car')
-        await collection.updateOne({ _id: new ObjectId(carId) }, { $pull: { msgs: {id: msgId} } })
-        return msgId
+        const collection = await dbService.getCollection('station')
+        await collection.updateOne({ _id: new ObjectId(stationId) }, { $pull: { songs: {id: songId} } })
+        return songId
     } catch (err) {
-        logger.error(`cannot add car msg ${carId}`, err)
+        logger.error(`cannot remove station song ${carId}`, err)
         throw err
     }
 }

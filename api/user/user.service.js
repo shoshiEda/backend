@@ -10,22 +10,20 @@ export const userService = {
     getByUsername,
     remove,
     update,
-    add
+    add,
+    addUserLikedSong,
+    removeUserLikedSong,
+    addUserStation,
+    removeUserStation,
+    addUserLikedStation,
+    removeUserLikedStation,
+    editUserStation
 }
 
-async function query(filterBy = {}) {
-    const criteria = _buildCriteria(filterBy)
+async function query() {
     try {
         const collection = await dbService.getCollection('user')
-        var users = await collection.find(criteria).sort({nickname: -1}).toArray()
-        users = users.map(user => {
-            delete user.password
-            user.isHappy = true
-            user.createdAt = ObjectId(user._id).getTimestamp()
-            // Returning fake fresh data
-            // user.createdAt = Date.now() - (1000 * 60 * 60 * 24 * 3) // 3 days ago
-            return user
-        })
+        var users = await collection.toArray()
         return users
     } catch (err) {
         logger.error('cannot find users', err)
@@ -36,7 +34,7 @@ async function query(filterBy = {}) {
 async function getById(userId) {
     try {
         const collection = await dbService.getCollection('user')
-        const user = await collection.findOne({ _id: ObjectId(userId) })
+        const user = await collection.findOne({ _id: new ObjectId(userId) })
         delete user.password
         return user
     } catch (err) {
@@ -66,17 +64,19 @@ async function remove(userId) {
 }
 
 async function update(user) {
+    console.log(user)
     try {
-        // peek only updatable fields!
         const userToSave = {
-            _id: ObjectId(user._id),
             username: user.username,
-            fullname: user.fullname,
-            score: user.score
+            imgUrl: user.imgUrl,
         }
+        if(user.currSong) userToSave.currSong = user.currSong
+        if(user.currStation) userToSave.currStation = user.currStation
+
+
         const collection = await dbService.getCollection('user')
-        await collection.updateOne({ _id: userToSave._id }, { $set: userToSave })
-        return userToSave
+        await collection.updateOne({ _id: new ObjectId(user._id) }, { $set: userToSave })
+        return user
     } catch (err) {
         logger.error(`cannot update user ${user._id}`, err)
         throw err
@@ -93,8 +93,8 @@ async function add(user) {
         const userToAdd = {
             username: user.username,
             password: user.password,
-            fullname: user.fullname,
-            score: user.score || 0
+            email: user.email,
+            imgUrl: user.imgUrl,
         }
         const collection = await dbService.getCollection('user')
         await collection.insertOne(userToAdd)
@@ -105,21 +105,83 @@ async function add(user) {
     }
 }
 
-function _buildCriteria(filterBy) {
-    const criteria = {}
-    if (filterBy.txt) {
-        const txtCriteria = { $regex: filterBy.txt, $options: 'i' }
-        criteria.$or = [
-            {
-                username: txtCriteria
-            },
-            {
-                fullname: txtCriteria
-            }
-        ]
+async function addUserLikedSong(userId, song) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $push: { likedSongs: song } })
+        return song
+    } catch (err) {
+        logger.error(`cannot add user song ${userId}`, err)
+        throw err
     }
-    if (filterBy.minBalance) {
-        criteria.balance = { $gte: filterBy.minBalance }
-    }
-    return criteria
 }
+
+async function removeUserLikedSong(userId, songId) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $pull: { likedSongs: {trackId: songId} } })
+        return songId
+    } catch (err) {
+        logger.error(`cannot remove station song ${songId}`, err)
+        throw err
+    }
+}
+
+async function addUserStation(userId, station) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $push: { stations: station } })
+        return station
+    } catch (err) {
+        logger.error(`cannot add user station ${userId}`, err)
+        throw err
+    }
+}
+
+async function editUserStation(userId, station) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $set: { stations: station } })
+        return station
+    } catch (err) {
+        logger.error(`cannot add user station ${userId}`, err)
+        throw err
+    }
+}
+
+
+async function removeUserStation(userId, stationId) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $pull: { stations: {_id: stationId} } })
+        return stationId
+    } catch (err) {
+        logger.error(`cannot remove station station ${userId}`, err)
+        throw err
+    }
+}
+
+async function addUserLikedStation(userId, station) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $push: { likedStations: station } })
+        return station
+    } catch (err) {
+        logger.error(`cannot add user station ${userId}`, err)
+        throw err
+    }
+}
+
+async function removeUserLikedStation(userId, stationId) {
+    try {
+        const collection = await dbService.getCollection('user')
+        await collection.updateOne({ _id: new ObjectId(userId) }, { $pull: { likedStations: {_id: stationId} } })
+        return stationId
+    } catch (err) {
+        logger.error(`cannot remove station station ${userId}`, err)
+        throw err
+    }
+}
+
+
+

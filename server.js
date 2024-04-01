@@ -40,7 +40,7 @@ import { userRoutes } from './api/user/user.routes.js'
 app.use('/api/user', userRoutes)
 
 import { stationRoutes } from './api/station/station.routes.js'
-app.use('/api/car', carRoutes)
+app.use('/api/station', stationRoutes)
 
 // Make every unmatched server-side-route fall back to index.html
 // So when requesting http://localhost:3030/index.html/car/123 it will still respond with

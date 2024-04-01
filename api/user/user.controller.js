@@ -1,6 +1,7 @@
 import { userService } from './user.service.js'
 import { logger } from '../../services/logger.service.js'
 
+
 export async function getUser(req, res) {
     try {
         const user = await userService.getById(req.params.id)
@@ -36,6 +37,8 @@ export async function deleteUser(req, res) {
 }
 
 export async function updateUser(req, res) {
+
+
     try {
         const user = req.body
         const savedUser = await userService.update(user)
@@ -45,3 +48,91 @@ export async function updateUser(req, res) {
         res.status(500).send({ err: 'Failed to update user' })
     }
 }
+
+export async function addUserLikedSong(req, res) {
+    try {
+        const userId = req.params.id
+        const song = req.body
+        const savedSong = await userService.addUserLikedSong(userId, song)
+        res.json(savedSong)
+    } catch (err) {
+        logger.error('Failed to update user', err)
+        res.status(500).send({ err: 'Failed to update user' })
+    }
+}
+
+export async function removeUserLikedSong(req, res) {
+    try {
+        const userId = req.params.id
+        const { trackId } = req.params
+
+        const removedId = await userService.removeUserLikedSong(userId, trackId)
+        res.send(removedId)
+    } catch (err) {
+        logger.error('Failed to remove user song', err)
+        res.status(500).send({ err: 'Failed to remove user song' })
+    }
+}
+
+export async function addUserStation(req, res) {
+    try {
+        const userId = req.params.id
+        const station = req.body
+        const savedStation = await userService.addUserStation(userId, station)
+        res.json(savedStation)
+    } catch (err) {
+        logger.error('Failed to update user', err)
+        res.status(500).send({ err: 'Failed to update user' })
+    }
+}
+
+export async function editUserStation(req, res) {
+    try {
+        const userId = req.params.id
+        const station = req.body
+        const savedStation = await userService.editUserStation(userId, station)
+        res.json(savedStation)
+    } catch (err) {
+        logger.error('Failed to update user', err)
+        res.status(500).send({ err: 'Failed to update user' })
+    }
+}
+
+export async function removeUserStation(req, res) {
+    try {
+        const userId = req.params.id
+        const { stationId } = req.params
+
+        const removedId = await userService.removeUserStation(userId,stationId)
+        res.send(removedId)
+    } catch (err) {
+        logger.error('Failed to remove user station', err)
+        res.status(500).send({ err: 'Failed to remove user station' })
+    }
+}
+
+export async function addUserLikedStation(req, res) {
+    try {
+        const userId = req.params.id
+        const station = req.body
+        const savedStation = await userService.addUserLikedStation(userId, station)
+        res.json(savedStation)
+    } catch (err) {
+        logger.error('Failed to update user', err)
+        res.status(500).send({ err: 'Failed to update user' })
+    }
+}
+
+export async function removeUserLikedStation(req, res) {
+    try {
+        const userId = req.params.id
+        const { _id } = req.params
+
+        const removedId = await userService.removeUserLikedStation(userId, _id)
+        res.send(removedId)
+    } catch (err) {
+        logger.error('Failed to remove user station', err)
+        res.status(500).send({ err: 'Failed to remove user station' })
+    }
+}
+
