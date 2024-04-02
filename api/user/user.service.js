@@ -128,9 +128,22 @@ async function removeUserLikedSong(userId, songId) {
 }
 
 async function addUserStation(userId, station) {
+    console.log(station)
+    
     try {
+        const user = await getById(userId)
         const collection = await dbService.getCollection('user')
-        await collection.updateOne({ _id: new ObjectId(userId) }, { $push: { stations: station } })
+        if (user.stations) {
+            await collection.updateOne(
+                { _id: new ObjectId(userId) },
+                { $push: { stations: { $each: [station], $position: 0 } } }
+            )
+        } else {
+            await collection.updateOne(
+                { _id: new ObjectId(userId) },
+                { $set: { stations: [station] } }
+            )
+        }        
         return station
     } catch (err) {
         logger.error(`cannot add user station ${userId}`, err)
@@ -141,7 +154,10 @@ async function addUserStation(userId, station) {
 async function editUserStation(userId, station) {
     try {
         const collection = await dbService.getCollection('user')
-        await collection.updateOne({ _id: new ObjectId(userId) }, { $set: { stations: station } })
+        await collection.updateOne(
+            { _id: new ObjectId(userId), "stations._id": station._id },
+            { $set: { "stations.$": station } }
+        )
         return station
     } catch (err) {
         logger.error(`cannot add user station ${userId}`, err)

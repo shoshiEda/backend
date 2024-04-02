@@ -31,9 +31,9 @@ async function query(type='') {
                 const stationsOfType = await collection.find({ type }).sort(sortCriteria).limit(MAX_STATIONS_ON_PAGE).toArray();
                 return stationsOfType;
             });
-            const stations = await Promise.all(promises);
-            //return stations;
-            return []
+            const stationsArrays = await Promise.all(promises);
+            const allStations = [].concat(...stationsArrays);
+            return allStations;
         }
     } catch (err) {
         logger.error('cannot find stations', err);

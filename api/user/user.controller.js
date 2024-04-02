@@ -78,6 +78,7 @@ export async function addUserStation(req, res) {
     try {
         const userId = req.params.id
         const station = req.body
+        console.log('add:',userId, station)
         const savedStation = await userService.addUserStation(userId, station)
         res.json(savedStation)
     } catch (err) {
@@ -90,6 +91,7 @@ export async function editUserStation(req, res) {
     try {
         const userId = req.params.id
         const station = req.body
+        console.log(userId,station)
         const savedStation = await userService.editUserStation(userId, station)
         res.json(savedStation)
     } catch (err) {

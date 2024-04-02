@@ -5,6 +5,8 @@ import { stationService } from './station.service.js'
 export async function getStations(req, res) {
     try {
         const type = req.query.type || ''
+
+        console.log(type)
         
         logger.debug('Getting Stations', type)
         const stations = await stationService.query(type)
