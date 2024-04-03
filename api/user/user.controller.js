@@ -128,9 +128,8 @@ export async function addUserLikedStation(req, res) {
 export async function removeUserLikedStation(req, res) {
     try {
         const userId = req.params.id
-        const { _id } = req.params
-
-        const removedId = await userService.removeUserLikedStation(userId, _id)
+        const stationId = req.params.stationId
+        const removedId = await userService.removeUserLikedStation(userId, stationId)
         res.send(removedId)
     } catch (err) {
         logger.error('Failed to remove user station', err)

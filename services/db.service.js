@@ -8,12 +8,13 @@ export const dbService = {
 let config
 if (process.env.NODE_ENV === 'production') {
     config = {
-        dbURL: process.env.MONGODB_URI,
+        dbURL: 'mongodb+srv://shoshi:shoshi123@cluster0.vqhqmms.mongodb.net/?retryWrites=true&w=majority',
         dbName: 'Tuby'
     }
   } else {
     config = {
-        dbURL: 'mongodb://127.0.0.1:27017',
+        //dbURL: 'mongodb://127.0.0.1:27017',
+        dbURL: 'mongodb+srv://shoshi:shoshi123@cluster0.vqhqmms.mongodb.net/?retryWrites=true&w=majority',
         dbName: 'Tuby',
     }
   }
