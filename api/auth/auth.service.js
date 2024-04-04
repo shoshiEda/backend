@@ -34,7 +34,8 @@ async function signup(username, password, email,imgUrl) {
     if (!username || !password || !email) throw new Error('Missing details')
 
     const hash = await bcrypt.hash(password, saltRounds)
-    return userService.add({ username, password: hash, email,imgUrl})
+    const user=userService.add({ username, password: hash, email,imgUrl})
+    return user
 }
 
 function getLoginToken(user) {
